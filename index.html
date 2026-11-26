@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Gestión de Inventario</h1>
+    <div id="alert-box" class="alert hidden"></div>
+
+    <form id="product-form" class="card">
+      <input type="hidden" id="product-id">
+      <div class="form-grid">
+        <input type="text" id="nombre" placeholder="Nombre del producto" required>
+        <input type="text" id="categoria" placeholder="Categoría" required>
+        <input type="number" id="precio" placeholder="Precio (RD$)" step="0.01" required>
+        <input type="number" id="cantidad" placeholder="Cantidad en stock" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" id="btn-submit">Guardar Producto</button>
+        <button type="button" id="btn-cancel" class="btn-secondary hidden">Cancelar</button>
+      </div>
+    </form>
+
+    <section class="card">
+      <input type="text" id="search-input" class="search-bar" placeholder="Buscar por nombre o categoría...">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="products-tbody"></tbody>
+      </table>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

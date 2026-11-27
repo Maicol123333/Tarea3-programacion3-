@@ -7,6 +7,10 @@ const precioInput = document.getElementById('precio');
 const cantidadInput = document.getElementById('cantidad');
 const productsTbody = document.getElementById('products-tbody');
 const alertBox = document.getElementById('alert-box');
+const submitBtn = document.getElementById('submit-btn') || productForm.querySelector('button[type="submit"]');
+const cancelBtn = document.getElementById('cancel-btn') || productForm.querySelector('.btn-secondary');
+
+let editingProductId = null;
 
 function obtenerProductos() {
   const datos = localStorage.getItem(STORAGE_KEY);
@@ -56,11 +60,45 @@ function renderizarTabla() {
   });
 }
 
+function iniciarEdicion(id) {
+  const productos = obtenerProductos();
+  const producto = productos.find((prod) => prod.id === id);
+  if (!producto) return;
+
+  editingProductId = producto.id;
+  nombreInput.value = producto.nombre;
+  categoriaInput.value = producto.categoria;
+  precioInput.value = producto.precio;
+  cantidadInput.value = producto.cantidad;
+
+  if (submitBtn) submitBtn.textContent = 'Actualizar Producto';
+  if (cancelBtn) cancelBtn.classList.remove('hidden');
+  nombreInput.focus();
+}
+
+function cancelarEdicion() {
+  editingProductId = null;
+  productForm.reset();
+  if (submitBtn) submitBtn.textContent = 'Guardar Producto';
+  if (cancelBtn) cancelBtn.classList.add('hidden');
+}
+
+function eliminarProducto(id) {
+  const productos = obtenerProductos().filter((prod) => prod.id !== id);
+  guardarProductos(productos);
+
+  if (editingProductId === id) {
+    cancelarEdicion();
+  }
+
+  renderizarTabla();
+  mostrarAlerta('Producto eliminado correctamente.', 'success');
+}
+
 productForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const nuevoProducto = {
-    id: Date.now().toString(),
+  const datosProducto = {
     nombre: nombreInput.value.trim(),
     categoria: categoriaInput.value.trim(),
     precio: parseFloat(precioInput.value),
@@ -68,12 +106,43 @@ productForm.addEventListener('submit', (e) => {
   };
 
   const productos = obtenerProductos();
-  productos.push(nuevoProducto);
-  guardarProductos(productos);
 
+  if (editingProductId) {
+    const index = productos.findIndex((prod) => prod.id === editingProductId);
+    if (index !== -1) {
+      productos[index] = { id: editingProductId, ...datosProducto };
+      guardarProductos(productos);
+    }
+    cancelarEdicion();
+    renderizarTabla();
+    mostrarAlerta('Producto actualizado correctamente.', 'success');
+    return;
+  }
+
+  productos.push({
+    id: Date.now().toString(),
+    ...datosProducto
+  });
+
+  guardarProductos(productos);
   productForm.reset();
   renderizarTabla();
   mostrarAlerta('Producto registrado correctamente.', 'success');
 });
+
+productsTbody.addEventListener('click', (e) => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+
+  if (e.target.classList.contains('btn-edit')) {
+    iniciarEdicion(id);
+  } else if (e.target.classList.contains('btn-delete')) {
+    eliminarProducto(id);
+  }
+});
+
+if (cancelBtn) {
+  cancelBtn.addEventListener('click', cancelarEdicion);
+}
 
 document.addEventListener('DOMContentLoaded', renderizarTabla);

@@ -30,6 +30,19 @@ function mostrarAlerta(mensaje, tipo = 'success') {
   }, 3000);
 }
 
+function validarDatos(nombre, categoria, precio, cantidad) {
+  if (!nombre || !categoria) {
+    return 'El nombre y la categoría del producto son obligatorios.';
+  }
+  if (Number.isNaN(precio) || precio <= 0) {
+    return 'El precio debe ser un número mayor a 0.';
+  }
+  if (!Number.isInteger(cantidad) || cantidad < 0) {
+    return 'La cantidad debe ser un número entero mayor o igual a 0.';
+  }
+  return null;
+}
+
 function renderizarTabla(filtro = '') {
   const productos = obtenerProductos();
   const termino = filtro.trim().toLowerCase();
@@ -114,13 +127,18 @@ function eliminarProducto(id) {
 productForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const datosProducto = {
-    nombre: nombreInput.value.trim(),
-    categoria: categoriaInput.value.trim(),
-    precio: parseFloat(precioInput.value),
-    cantidad: parseInt(cantidadInput.value, 10)
-  };
+  const nombre = nombreInput.value.trim();
+  const categoria = categoriaInput.value.trim();
+  const precio = parseFloat(precioInput.value);
+  const cantidad = Number(cantidadInput.value);
 
+  const errorValidacion = validarDatos(nombre, categoria, precio, cantidad);
+  if (errorValidacion) {
+    mostrarAlerta(errorValidacion, 'error');
+    return;
+  }
+
+  const datosProducto = { nombre, categoria, precio, cantidad };
   const productos = obtenerProductos();
   const filtroActual = searchInput ? searchInput.value : '';
 

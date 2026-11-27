@@ -5,6 +5,7 @@ const nombreInput = document.getElementById('nombre');
 const categoriaInput = document.getElementById('categoria');
 const precioInput = document.getElementById('precio');
 const cantidadInput = document.getElementById('cantidad');
+const searchInput = document.getElementById('search-input') || document.querySelector('.search-bar');
 const productsTbody = document.getElementById('products-tbody');
 const alertBox = document.getElementById('alert-box');
 const submitBtn = document.getElementById('submit-btn') || productForm.querySelector('button[type="submit"]');
@@ -29,22 +30,36 @@ function mostrarAlerta(mensaje, tipo = 'success') {
   }, 3000);
 }
 
-function renderizarTabla() {
+function renderizarTabla(filtro = '') {
   const productos = obtenerProductos();
+  const termino = filtro.trim().toLowerCase();
+
+  const productosFiltrados = termino
+    ? productos.filter(
+        (prod) =>
+          prod.nombre.toLowerCase().includes(termino) ||
+          prod.categoria.toLowerCase().includes(termino)
+      )
+    : productos;
+
   productsTbody.innerHTML = '';
 
-  if (productos.length === 0) {
+  if (productosFiltrados.length === 0) {
+    const mensajeVacio = termino
+      ? 'No se encontraron productos que coincidan con la búsqueda.'
+      : 'No hay productos registrados en el inventario.';
+
     productsTbody.innerHTML = `
       <tr>
         <td colspan="5" style="text-align: center; color: #64748b;">
-          No hay productos registrados en el inventario.
+          ${mensajeVacio}
         </td>
       </tr>
     `;
     return;
   }
 
-  productos.forEach((prod) => {
+  productosFiltrados.forEach((prod) => {
     const fila = document.createElement('tr');
     fila.innerHTML = `
       <td>${prod.nombre}</td>
@@ -91,7 +106,8 @@ function eliminarProducto(id) {
     cancelarEdicion();
   }
 
-  renderizarTabla();
+  const filtroActual = searchInput ? searchInput.value : '';
+  renderizarTabla(filtroActual);
   mostrarAlerta('Producto eliminado correctamente.', 'success');
 }
 
@@ -106,6 +122,7 @@ productForm.addEventListener('submit', (e) => {
   };
 
   const productos = obtenerProductos();
+  const filtroActual = searchInput ? searchInput.value : '';
 
   if (editingProductId) {
     const index = productos.findIndex((prod) => prod.id === editingProductId);
@@ -114,7 +131,7 @@ productForm.addEventListener('submit', (e) => {
       guardarProductos(productos);
     }
     cancelarEdicion();
-    renderizarTabla();
+    renderizarTabla(filtroActual);
     mostrarAlerta('Producto actualizado correctamente.', 'success');
     return;
   }
@@ -126,7 +143,7 @@ productForm.addEventListener('submit', (e) => {
 
   guardarProductos(productos);
   productForm.reset();
-  renderizarTabla();
+  renderizarTabla(filtroActual);
   mostrarAlerta('Producto registrado correctamente.', 'success');
 });
 
@@ -145,4 +162,10 @@ if (cancelBtn) {
   cancelBtn.addEventListener('click', cancelarEdicion);
 }
 
-document.addEventListener('DOMContentLoaded', renderizarTabla);
+if (searchInput) {
+  searchInput.addEventListener('input', (e) => {
+    renderizarTabla(e.target.value);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => renderizarTabla());
